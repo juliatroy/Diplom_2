@@ -46,14 +46,6 @@ class BaseRequests:
         else:
             return response.text
 
-    def exec_put_request_and_check(self, url, data, status):
-        response = requests.put(url=url, data=data)
-        assert response.status_code == status
-        if 'application/json' in response.headers['Content-Type']:
-            return response.json()
-        else:
-            return response.text
-
 
 class UserRequests(BaseRequests):
     user_handler = '/api/auth/register'
