@@ -17,7 +17,7 @@ def create_user_payload():
         if name == 'rand':
             payload["name"] = fake.name()
         elif name is not None:
-            payload["username"] = name
+            payload["name"] = name
         if password == 'rand':
             payload["password"] = fake.pyint()
         elif password is not None:
