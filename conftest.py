@@ -46,7 +46,7 @@ def make_fake_name():
 @allure.step('Конструируем payload для отправки заказа')
 def create_order_payload():
     ingredients_list = OrderRequests().get_ingredients_list()
-    ids = [element['_id'] for element in ingredients_list['data']]
+    ids = [element['_id'] for element in ingredients_list['text']['data']]
     ids_for_payload = random.sample(ids, 3)
     payload = {"ingredients": ids_for_payload}
     return payload
@@ -63,7 +63,7 @@ def make_user():
         return user
 
     yield _make_user
-    UserRequests().delete_user(token=user['accessToken'])
+    UserRequests().delete_user(token=user['text']['accessToken'])
 
 
 @pytest.fixture(scope='function')

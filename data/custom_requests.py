@@ -5,46 +5,39 @@ import allure
 class BaseRequests:
     host = 'https://stellarburgers.nomoreparties.site'
 
-    def exec_post_request_and_check(self, url, data, status, token=None):
-        headers = {}
-        if token is not None:
-            headers.update({'authorization': token})
+    def exec_post_request_with_token(self, url, data, token):
+        headers = {'authorization': token}
         response = requests.post(url=url, data=data, headers=headers)
-        assert response.status_code == status
         if 'application/json' in response.headers['Content-Type']:
-            return response.json()
+            return {"status_code": response.status_code, "text": response.json()}
         else:
-            return response.text
+            return {"status_code": response.status_code, "text": response.text}
 
-    def exec_delete_request_and_check(self, url, status, token):
+    def exec_post_request(self, url, data):
+        response = requests.post(url=url, data=data)
+        if 'application/json' in response.headers['Content-Type']:
+            return {"status_code": response.status_code, "text": response.json()}
+        else:
+            return {"status_code": response.status_code, "text": response.text}
+
+    def exec_delete_request(self, url, token):
         headers = {"Content-Type": "application/json", 'authorization': token}
         response = requests.delete(url=url, headers=headers)
-        assert response.status_code == status
-        if 'application/json' in response.headers['Content-Type']:
-            return response.json()
-        else:
-            return response.text
+        return {"status_code": response.status_code, "text": response.json()}
 
-    def exec_patch_request_and_check(self, url, data, token, status):
+    def exec_patch_request(self, url, data, token):
         headers = {'authorization': token}
         response = requests.patch(url=url, data=data, headers=headers)
-        assert response.status_code == status
-        if 'application/json' in response.headers['Content-Type']:
-            return response.json()
-        else:
-            return response.text
+        return {"status_code": response.status_code, "text": response.json()}
 
-    def exec_get_request_and_check(self, url, status, token=None):
-        headers = None
-        if token is not None:
-            headers = {'authorization': token}
-        data = {}
-        response = requests.get(url=url, data=data, headers=headers)
-        assert response.status_code == status
-        if 'application/json' in response.headers['Content-Type']:
-            return response.json()
-        else:
-            return response.text
+    def exec_get_request(self, url):
+        response = requests.get(url=url, data={})
+        return {"status_code": response.status_code, "text": response.json()}
+
+    def exec_get_request_with_token(self, url, token):
+        headers = {'authorization': token}
+        response = requests.get(url=url, data={}, headers=headers)
+        return {"status_code": response.status_code, "text": response.json()}
 
 
 class UserRequests(BaseRequests):
@@ -52,49 +45,52 @@ class UserRequests(BaseRequests):
     manipulate_user_handler = '/api/auth/user'
     user_login_handler = '/api/auth/login'
 
-    @allure.step('Создаем пользователя, отправив запрос POST. Ожидаем статус респонса {status}')
-    def post_create_user(self, data=None, status=200):
+    @allure.step('Создаем пользователя, отправив запрос POST')
+    def post_create_user(self, data=None):
         url = f"{self.host}{self.user_handler}"
-        return self.exec_post_request_and_check(url, data=data, status=status)
+        return self.exec_post_request(url=url, data=data)
 
-    @allure.step('Логиним пользователя, отправив запрос POST. Ожидаем статус респонса {status}')
-    def post_login_user(self, token, data=None, status=200):
+    @allure.step('Логиним пользователя, отправив запрос POST')
+    def post_login_user(self, token, data=None):
         url = f"{self.host}{self.user_login_handler}"
-        return self.exec_post_request_and_check(url, data=data, status=status, token=token)
+        return self.exec_post_request_with_token(url, data=data, token=token)
 
-    @allure.step('Удаляем пользователя, отправив запрос DELETE. Ожидаем статус респонса {status}')
-    def delete_user(self, token=None, status=202):
+    @allure.step('Удаляем пользователя, отправив запрос DELETE')
+    def delete_user(self, token):
         url = f"{self.host}{self.manipulate_user_handler}"
-        return self.exec_delete_request_and_check(url, status=status, token=token)
+        return self.exec_delete_request(url, token=token)
 
-    @allure.step('Обновляем данные пользователя, отправив запрос PATCH. Ожидаем статус респонса {status}')
-    def patch_user(self, data=None, token=None, status=200):
+    @allure.step('Обновляем данные пользователя, отправив запрос PATCH')
+    def patch_user(self, data, token):
         url = f"{self.host}{self.manipulate_user_handler}"
-        return self.exec_patch_request_and_check(url, data=data, status=status, token=token)
+        return self.exec_patch_request(url, data=data, token=token)
 
-    @allure.step('Получаем данные пользователя, отправив запрос GET. Ожидаем статус респонса {status}')
-    def get_user_data(self, token, status=200):
+    @allure.step('Получаем данные пользователя, отправив запрос GET')
+    def get_user_data(self, token):
         url = f"{self.host}{self.manipulate_user_handler}"
-        return self.exec_get_request_and_check(url, status=status, token=token)
+        return self.exec_get_request_with_token(url, token=token)
 
 
 class OrderRequests(BaseRequests):
     ingredients_handler = '/api/ingredients'
     order_handler = '/api/orders'
 
-    @allure.step('Создаем заказ, отправив запрос POST. Ожидаем статус респонса {status}')
-    def post_create_order(self, token, data=None, status=200):
+    @allure.step('Создаем заказ, отправив запрос POST')
+    def post_create_order(self, token, data):
         url = f"{self.host}{self.order_handler}"
-        return self.exec_post_request_and_check(url, data=data, status=status, token=token)
+        return self.exec_post_request_with_token(url, data=data, token=token)
 
-    @allure.step('Получаем список ингредиентов, отправив запрос GET. Ожидаем статус респонса {status}')
-    def get_ingredients_list(self, status=200):
+    @allure.step('Создаем заказ без токена, отправив запрос POST')
+    def post_create_order_no_token(self, data):
+        url = f"{self.host}{self.order_handler}"
+        return self.exec_post_request(url, data=data)
+
+    @allure.step('Получаем список ингредиентов, отправив запрос GET')
+    def get_ingredients_list(self):
         url = f"{self.host}{self.ingredients_handler}"
-        return self.exec_get_request_and_check(url, status=status)
+        return self.exec_get_request(url)
 
-    @allure.step('Получаем заказы пользователя, отправив запрос GET. Ожидаем статус респонса {status}')
-    def get_user_orders(self, token, status=200):
+    @allure.step('Получаем заказы пользователя, отправив запрос GET.')
+    def get_user_orders(self, token):
         url = f"{self.host}{self.order_handler}"
-        return self.exec_get_request_and_check(url, status=status, token=token)
-
-
+        return self.exec_get_request_with_token(url, token=token)
